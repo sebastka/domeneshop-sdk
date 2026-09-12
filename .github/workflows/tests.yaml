@@ -42,6 +42,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          # Full history, so Composer can resolve the path-repo cross-dependency
+          # (sebastka/domeneshop-php) through its dev-master branch alias. On a
+          # shallow detached checkout the version guesses to dev-<sha>, which
+          # satisfies no constraint and fails the install.
+          fetch-depth: 0
 
       - name: Set up PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240  # 2.37.2
@@ -111,7 +117,7 @@ jobs:
         run: go vet ./...
 
       - name: Lint
-        uses: golangci/golangci-lint-action@4afd733a84b1f43292c63897423277bb0f9e6e3b  # v9.0.0
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a  # v9.3.0
         with:
           version: v2.11
           working-directory: packages/terraform-provider-domeneshop
