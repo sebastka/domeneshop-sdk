@@ -95,8 +95,12 @@ jobs:
       # default GITHUB_TOKEN does **not** trigger other workflows, so split.yaml
       # would never run and nothing would publish — the release would look like
       # it worked and quietly go nowhere.
+      #
+      # Minted even on a dry run: this step, and the push negotiation below, are
+      # where releases actually fail (the App not installed on this repository,
+      # or without write access). A dry run that skipped them would validate
+      # everything except the parts that break.
       - name: Mint a token that can trigger the split
-        if: ${{ !inputs.dry_run }}
         id: app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
         with:
@@ -105,23 +109,35 @@ jobs:
           owner: sebastka
           repositories: domeneshop-sdk
 
-      - name: Create and push the tag
-        if: ${{ !inputs.dry_run }}
+      # Local only; nothing has left the runner yet.
+      - name: Create the tag
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git tag -a "v$VERSION" -m "Release v$VERSION"
+        env:
+          VERSION: ${{ inputs.version }}
+
+      # --dry-run still connects, authenticates and negotiates refs with the
+      # remote — it just does not update anything. So this proves the App can
+      # actually push here, which is the check that would have caught both of
+      # the failures this workflow hit on its first outing.
+      - name: Verify the tag could be pushed
+        if: ${{ inputs.dry_run }}
+        run: |
+          git push --dry-run "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "v$VERSION"
+          echo "### Dry run: \`v$VERSION\` would be tagged" >> "$GITHUB_STEP_SUMMARY"
+          echo "Every check passed and the push authenticated. Re-run with dry_run unchecked to publish." >> "$GITHUB_STEP_SUMMARY"
+        env:
+          VERSION: ${{ inputs.version }}
+          TOKEN: ${{ steps.app-token.outputs.token }}
+
+      - name: Push the tag
+        if: ${{ !inputs.dry_run }}
+        run: |
           git push "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "v$VERSION"
           echo "### Tagged \`v$VERSION\`" >> "$GITHUB_STEP_SUMMARY"
           echo "Split, Packagist and the Terraform Registry follow from here." >> "$GITHUB_STEP_SUMMARY"
         env:
           VERSION: ${{ inputs.version }}
           TOKEN: ${{ steps.app-token.outputs.token }}
-
-      - name: Dry run summary
-        if: ${{ inputs.dry_run }}
-        run: |
-          echo "### Dry run: v$VERSION would be tagged" >> "$GITHUB_STEP_SUMMARY"
-          echo "All checks passed. Re-run with dry_run unchecked to publish." >> "$GITHUB_STEP_SUMMARY"
-        env:
-          VERSION: ${{ inputs.version }}
