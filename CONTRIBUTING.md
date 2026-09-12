@@ -215,6 +215,26 @@ Two repository settings have to be in place, or this does not do what it looks l
 
 The workflow never checks out or executes the PR's code, and passes Dependabot's metadata through the environment rather than interpolating it into the shell, so a crafted dependency name cannot become a command.
 
+## Packagist
+
+The three PHP packages are published from their split repositories. After the split succeeds, a `packagist` job in [`split.yaml`](.github/workflows/split.yaml) asks Packagist to re-crawl each one.
+
+Two settings on the monorepo drive it:
+
+| | |
+| --- | --- |
+| variable `PACKAGIST_USERNAME` | your Packagist username |
+| secret `PACKAGIST_TOKEN` | Packagist → Profile → Show API Token |
+
+```bash
+gh variable set PACKAGIST_USERNAME -R sebastka/domeneshop-sdk --body sebastka
+gh secret   set PACKAGIST_TOKEN    -R sebastka/domeneshop-sdk
+```
+
+**Why not Packagist's GitHub integration?** It works, and it is less setup — but it installs webhooks on the split repositories, which this workflow recreates from scratch. Lose or recreate one and its packages quietly stop updating, with nothing to notice until someone reports a stale version. Doing it from CI keeps the configuration versioned with the code and turns a failure into a red job.
+
+The request URL must match the repository Packagist has on file, or the API returns success having updated nothing. If you ever rename a split repo, update it on Packagist too.
+
 ## Releasing
 
 Releases are cut by the **Release** workflow — Actions → Release → *Run workflow* — with the version as an input (`0.2.0`, no leading `v`). There is a `dry_run` box that validates everything and stops short of tagging.
