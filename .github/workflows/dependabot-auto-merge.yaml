@@ -36,14 +36,11 @@ jobs:
         id: meta
         uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98  # v3.1.0
 
-      # Only needed when branch protection requires an approving review, which
-      # Dependabot cannot give itself. Harmless otherwise.
-      - name: Approve non-major updates
-        if: ${{ steps.meta.outputs.update-type != 'version-update:semver-major' }}
-        run: gh pr review --approve "$PR_URL"
-        env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # No approval step on purpose. GitHub blocks Actions from approving pull
+      # requests unless "Allow GitHub Actions to create and approve pull
+      # requests" is enabled, and the ruleset requires 0 approvals anyway — a
+      # solo maintainer cannot approve their own PR, so the gate here is CI.
+      # An approve step fails the run outright rather than being harmless.
 
       - name: Enable auto-merge for non-major updates
         if: ${{ steps.meta.outputs.update-type != 'version-update:semver-major' }}
