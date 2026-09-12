@@ -33,6 +33,13 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 0  # tags, so the "already released" check is meaningful
+          # Do not keep the runner's own credentials. actions/checkout stores an
+          # Authorization header scoped to github.com, and that header takes
+          # precedence over a token embedded in a push URL — so the App token
+          # below would be minted, ignored, and the push attributed to
+          # github-actions[bot], which cannot write here. Dropping them leaves
+          # the push to authenticate with the App token and nothing else.
+          persist-credentials: false
 
       - name: Set up PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240  # 2.37.2
