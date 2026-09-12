@@ -1,0 +1,55 @@
+---
+name: Split packages
+
+# Mirror each packages/* directory (and its tags) into its own read-only repo.
+# Packagist watches the PHP splits; the Terraform Registry requires the provider
+# to live in a dedicated terraform-provider-* repository, which is why it splits
+# out too. Develop here in the monorepo; this publishes the splits.
+
+on:
+  push:
+    branches: [master]
+    tags: ['v*']
+
+jobs:
+  split:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - domeneshop-php
+          - domeneshop-cli
+          - domeneshop-laravel
+          - terraform-provider-domeneshop
+    name: ${{ matrix.package }}
+    steps:
+      - name: Mint a token for sebastka/${{ matrix.package }}
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
+        with:
+          client-id: ${{ vars.SPLIT_APP_CLIENT_ID }}
+          private-key: ${{ secrets.SPLIT_APP_PRIVATE_KEY }}
+          owner: sebastka
+          repositories: ${{ matrix.package }}
+
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0  # full history is required to split a subdirectory
+
+      - name: Split packages/${{ matrix.package }} -> sebastka/${{ matrix.package }}
+        uses: symplify/monorepo-split-github-action@14e42e2437f674b8987c1f50ca3689116aea1893  # v2.4.5
+        env:
+          PAT: x-access-token:${{ steps.app-token.outputs.token }}
+        with:
+          package_directory: packages/${{ matrix.package }}
+          repository_organization: sebastka
+          repository_name: ${{ matrix.package }}
+          branch: master
+          # The action only mirrors a tag when given one explicitly (it does not
+          # derive it from GITHUB_REF). On a tag push, forward the tag name so the
+          # release is mirrored to each split repo; on a branch push, leave it empty.
+          tag: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+          user_name: github-actions[bot]
+          user_email: 41898282+github-actions[bot]@users.noreply.github.com

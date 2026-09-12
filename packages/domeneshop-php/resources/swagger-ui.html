@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Domeneshop API — Swagger UI</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.32.15/swagger-ui.css">
+  <style>
+    body { margin: 0; background: #fafafa; }
+    .ds-banner {
+      font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding: 12px 20px;
+      background: #fff8e1;
+      border-bottom: 1px solid #ffe082;
+      color: #5d4037;
+    }
+    .ds-banner strong { color: #3e2723; }
+    .ds-banner code {
+      background: rgba(0, 0, 0, .06);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-size: 13px;
+    }
+    .ds-banner a { color: #00695c; }
+    .ds-banner--live { background: #e8f5e9; border-bottom-color: #a5d6a7; color: #1b5e20; }
+    .ds-banner--live strong { color: #0b3d12; }
+  </style>
+</head>
+<body>
+  <!--__BANNER__-->
+
+  <div id="swagger-ui"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.32.15/swagger-ui-bundle.js" crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.32.15/swagger-ui-standalone-preset.js" crossorigin></script>
+  <script>
+    // Both the spec and the mode-specific options are inlined at build time by
+    // bin/build-swagger.php, so the page is a single self-contained file: no
+    // spec fetch, and therefore no need to serve it over HTTP just to read it.
+    const spec = /*__OPENAPI_SPEC__*/ null;
+    const overrides = /*__UI_OVERRIDES__*/ {};
+
+    window.ui = SwaggerUIBundle(Object.assign({
+      spec: spec,
+      dom_id: '#swagger-ui',
+      deepLinking: true,
+      presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+      plugins: [SwaggerUIBundle.plugins.DownloadUrl],
+      layout: 'BaseLayout',
+      docExpansion: 'list',
+      defaultModelsExpandDepth: 2,
+      persistAuthorization: false,
+      // Off by default: served as a plain file, every request would be blocked
+      // by CORS. The preview build (composer docs:preview) turns it back on and
+      // points the spec at a same-origin proxy.
+      tryItOutEnabled: false,
+      supportedSubmitMethods: [],
+    }, overrides));
+  </script>
+</body>
+</html>

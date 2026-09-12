@@ -1,0 +1,71 @@
+---
+name: Dependabot auto-merge
+
+# Auto-merge Dependabot PRs for patch and minor bumps. Major bumps are left open
+# for a human: a major release can change behaviour, drop a PHP or Go version, or
+# rename an action's inputs, and none of that is something CI reliably catches.
+#
+# Two repository settings have to be in place for this to behave as intended:
+#
+#   1. Settings -> General -> "Allow auto-merge" must be enabled, or
+#      `gh pr merge --auto` fails outright.
+#
+#   2. The default branch needs protection with **required status checks**
+#      (the `php`, `style`, `provider` and OpenAPI jobs). This is the important
+#      one: `--auto` merges as soon as the PR is mergeable, so with no required
+#      checks configured it merges *immediately*, without waiting for the suite.
+#      That would turn this workflow into "merge every non-major bump blind",
+#      which is the opposite of the point.
+
+on: pull_request
+
+# Dependabot-triggered runs get a read-only token by default; these raise it to
+# what auto-merge needs, and no further.
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    # github.actor is the safe check here — the run is already scoped to a
+    # Dependabot-authored PR, and we never check out or execute its code.
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98  # v3.1.0
+
+      # Only needed when branch protection requires an approving review, which
+      # Dependabot cannot give itself. Harmless otherwise.
+      - name: Approve non-major updates
+        if: ${{ steps.meta.outputs.update-type != 'version-update:semver-major' }}
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable auto-merge for non-major updates
+        if: ${{ steps.meta.outputs.update-type != 'version-update:semver-major' }}
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Explain why a major bump was left alone
+        if: ${{ steps.meta.outputs.update-type == 'version-update:semver-major' }}
+        # The values go through the environment rather than being interpolated
+        # into the script: a dependency name is untrusted input, and this way it
+        # cannot end up being parsed as shell.
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NAMES: ${{ steps.meta.outputs.dependency-names }}
+          PREVIOUS: ${{ steps.meta.outputs.previous-version }}
+          NEW: ${{ steps.meta.outputs.new-version }}
+        run: |
+          body=$(printf '%s `%s` (%s -> %s). %s' \
+            'Left for manual review: this is a **major** bump of' \
+            "$NAMES" "$PREVIOUS" "$NEW" \
+            'Auto-merge only covers patch and minor updates.')
+          gh pr comment "$PR_URL" --body "$body"

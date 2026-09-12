@@ -1,0 +1,52 @@
+---
+name: OpenAPI
+
+# The spec is generated from the #[OA\*] attributes on the client's own resource
+# methods, so a broken or invalid attribute has to fail the build — otherwise
+# the published document silently drifts from the code.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  generate:
+    name: openapi spec
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/domeneshop-php
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240  # 2.37.2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress
+
+      # Generates, validates, and asserts every expected operation is present.
+      - name: Generate and validate the spec
+        run: composer openapi:check
+
+      # Builds the spec (YAML + JSON) and all three pages. Every renderer is
+      # PHP-only, so this needs no Node. The proxy-backed preview variants are
+      # deliberately not built here — they only mean anything behind the local
+      # docs router, and must never ship in an artifact.
+      - name: Build the spec and documentation pages
+        run: composer docs:build
+
+      - name: Upload the spec and docs
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: openapi
+          path: |
+            packages/domeneshop-php/build/openapi.yaml
+            packages/domeneshop-php/build/openapi.json
+            packages/domeneshop-php/build/swagger.html
+            packages/domeneshop-php/build/rapidoc.html
+            packages/domeneshop-php/build/redoc.html

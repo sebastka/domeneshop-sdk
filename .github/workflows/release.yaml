@@ -1,0 +1,120 @@
+---
+name: Release
+
+# Creates and pushes the release tag. Everything downstream hangs off that tag:
+# `split.yaml` mirrors it into the four package repos, Packagist picks up the
+# new version from the three PHP splits, and the provider's own release workflow
+# builds the signed, registry-shaped artifacts from it.
+#
+# Nothing here commits. Bump the version in a normal pull request first; this
+# workflow only verifies the tree agrees with itself and then tags it.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release, without the leading v (e.g. 0.2.0)'
+        required: true
+        type: string
+      dry_run:
+        description: 'Validate only — do not create or push the tag'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: tag v${{ inputs.version }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0  # tags, so the "already released" check is meaningful
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240  # 2.37.2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Check the version is well formed
+        run: |
+          # Deliberately strict, and matching tools/check-versions.php: the
+          # VERSION constants in the source carry no pre-release suffix, so a
+          # tag like 0.2.0-rc.1 could never match them. Supporting pre-releases
+          # means teaching both checks about them, not just this one.
+          if ! printf '%s' "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::'$VERSION' is not MAJOR.MINOR.PATCH. No leading v, no pre-release suffix."
+            exit 1
+          fi
+        env:
+          VERSION: ${{ inputs.version }}
+
+      - name: Check the tag is not already taken
+        run: |
+          if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
+            echo "::error::v$VERSION already exists. Releases are immutable; pick the next version."
+            exit 1
+          fi
+        env:
+          VERSION: ${{ inputs.version }}
+
+      # The version is declared in four places across two packages. A tag that
+      # disagrees with them ships a client that misreports itself in its own
+      # User-Agent and OpenAPI document.
+      - name: Check every declared version matches
+        run: php tools/check-versions.php "$VERSION"
+        env:
+          VERSION: ${{ inputs.version }}
+
+      - name: Confirm the release commit is green
+        run: |
+          conclusion=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs" \
+            --jq '[.check_runs[] | select(.name != "tag v'"$VERSION"'") | .conclusion] | unique | join(",")')
+          echo "check conclusions on this commit: ${conclusion:-none}"
+          case "$conclusion" in
+            ""|*failure*|*cancelled*|*timed_out*)
+              echo "::error::This commit has no successful checks, or some failed. Refusing to tag it."
+              exit 1 ;;
+          esac
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ inputs.version }}
+
+      # The tag is pushed with the App token on purpose. A tag pushed using the
+      # default GITHUB_TOKEN does **not** trigger other workflows, so split.yaml
+      # would never run and nothing would publish — the release would look like
+      # it worked and quietly go nowhere.
+      - name: Mint a token that can trigger the split
+        if: ${{ !inputs.dry_run }}
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
+        with:
+          client-id: ${{ vars.SPLIT_APP_CLIENT_ID }}
+          private-key: ${{ secrets.SPLIT_APP_PRIVATE_KEY }}
+          owner: sebastka
+          repositories: domeneshop-sdk
+
+      - name: Create and push the tag
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git tag -a "v$VERSION" -m "Release v$VERSION"
+          git push "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "v$VERSION"
+          echo "### Tagged \`v$VERSION\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Split, Packagist and the Terraform Registry follow from here." >> "$GITHUB_STEP_SUMMARY"
+        env:
+          VERSION: ${{ inputs.version }}
+          TOKEN: ${{ steps.app-token.outputs.token }}
+
+      - name: Dry run summary
+        if: ${{ inputs.dry_run }}
+        run: |
+          echo "### Dry run: v$VERSION would be tagged" >> "$GITHUB_STEP_SUMMARY"
+          echo "All checks passed. Re-run with dry_run unchecked to publish." >> "$GITHUB_STEP_SUMMARY"
+        env:
+          VERSION: ${{ inputs.version }}

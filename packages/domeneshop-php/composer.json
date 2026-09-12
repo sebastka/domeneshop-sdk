@@ -1,0 +1,123 @@
+{
+    "name": "sebastka/domeneshop-php",
+    "description": "PHP client for the Domeneshop API (third-party, unofficial).",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "domeneshop",
+        "dns",
+        "domains",
+        "api",
+        "client"
+    ],
+    "homepage": "https://github.com/sebastka/domeneshop-php",
+    "authors": [
+        {
+            "name": "Sebastian Karlsen",
+            "email": "sebastian@karlsen.fr"
+        }
+    ],
+    "require": {
+        "php": ">=8.4",
+        "ext-json": "*",
+        "php-http/discovery": "^1.20",
+        "psr/http-client": "^1.0",
+        "psr/http-factory": "^1.0",
+        "psr/http-message": "^1.1 || ^2.0"
+    },
+    "require-dev": {
+        "ext-curl": "*",
+        "guzzlehttp/guzzle": "^7.10 || ^8.0",
+        "nyholm/psr7": "^1.8",
+        "phpunit/phpunit": "^11.5 || ^12.0 || ^13.0",
+        "zircote/swagger-php": "^6.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "Sebastka\\Domeneshop\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Sebastka\\Domeneshop\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test:contract": "phpunit --group contract --testdox",
+        "coverage:responses": "php bin/response-coverage.php",
+        "openapi": "php bin/generate-openapi.php",
+        "openapi:json": "php bin/generate-openapi.php --json",
+        "openapi:check": "php bin/generate-openapi.php --check",
+        "docs:build": [
+            "@openapi",
+            "@openapi:json",
+            "@swagger",
+            "@rapidoc",
+            "@redoc"
+        ],
+        "docs:preview": [
+            "php bin/build-docs-page.php --renderer=swagger --proxy",
+            "php bin/build-docs-page.php --renderer=rapidoc --proxy",
+            "php bin/build-docs-page.php --renderer=redoc --proxy",
+            "Composer\\Config::disableProcessTimeout",
+            "php -S 127.0.0.1:8088 -t build bin/docs-router.php"
+        ],
+        "docs:offline": [
+            "@openapi",
+            "npx --yes @redocly/cli build-docs build/openapi.yaml -o build/redoc-offline.html"
+        ],
+        "swagger": "php bin/build-docs-page.php --renderer=swagger",
+        "swagger-preview": [
+            "php bin/build-docs-page.php --renderer=swagger --proxy",
+            "Composer\\Config::disableProcessTimeout",
+            "DOCS_INDEX=swagger-preview.html php -S 127.0.0.1:8088 -t build bin/docs-router.php"
+        ],
+        "rapidoc": "php bin/build-docs-page.php --renderer=rapidoc",
+        "rapidoc-preview": [
+            "php bin/build-docs-page.php --renderer=rapidoc --proxy",
+            "Composer\\Config::disableProcessTimeout",
+            "DOCS_INDEX=rapidoc-preview.html php -S 127.0.0.1:8088 -t build bin/docs-router.php"
+        ],
+        "redoc": "php bin/build-docs-page.php --renderer=redoc",
+        "redoc-preview": [
+            "php bin/build-docs-page.php --renderer=redoc --proxy",
+            "Composer\\Config::disableProcessTimeout",
+            "DOCS_INDEX=redoc-preview.html php -S 127.0.0.1:8088 -t build bin/docs-router.php"
+        ]
+    },
+    "scripts-descriptions": {
+        "test": "Run the offline unit suite (mocked PSR-18 transport).",
+        "test:contract": "Run the live contract suite against the real API. Needs credentials.",
+        "coverage:responses": "Check that every response the OpenAPI document promises is exercised by a test.",
+        "openapi": "Write build/openapi.yaml from the #[OA\\*] attributes.",
+        "openapi:json": "Write build/openapi.json instead.",
+        "openapi:check": "Generate and validate only, writing nothing (the CI gate).",
+        "docs:build": "Build the spec and all three shareable pages into build/.",
+        "docs:preview": "Build every preview and serve them at http://127.0.0.1:8088/.",
+        "docs:offline": "Bundle a fully self-contained build/redoc-offline.html that needs no internet to view. Needs Node/npx.",
+        "swagger": "Build build/swagger.html (Swagger UI).",
+        "swagger-preview": "Build and serve the Swagger UI preview, with its try-it console calling the real API.",
+        "rapidoc": "Build build/rapidoc.html (RapiDoc).",
+        "rapidoc-preview": "Build and serve the RapiDoc preview, with its try-it console calling the real API.",
+        "redoc": "Build build/redoc.html (Redoc).",
+        "redoc-preview": "Build and serve Redoc locally. Redoc has no try-it console, so this is reading only."
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.1.x-dev",
+            "dev-main": "0.1.x-dev"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": false
+        }
+    },
+    "suggest": {
+        "guzzlehttp/guzzle": "A PSR-18 client that also provides the PSR-17 factories (the simplest single-package choice).",
+        "symfony/http-client": "A PSR-18 client; pair it with nyholm/psr7 for the PSR-17 factories.",
+        "nyholm/psr7": "Lightweight PSR-17 factories, for clients that do not ship their own."
+    }
+}

@@ -1,0 +1,123 @@
+---
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  php:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [domeneshop-php, domeneshop-cli, domeneshop-laravel]
+        php-version: ['8.4', '8.5']
+    name: ${{ matrix.package }} (PHP ${{ matrix.php-version }})
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          # Full history so Composer can resolve the path-repo cross-dependency
+          # (sebastka/domeneshop-php) to its dev-master branch alias.
+          fetch-depth: 0
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240  # 2.37.2
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+
+      - name: Install dependencies
+        working-directory: packages/${{ matrix.package }}
+        run: composer install --no-interaction --no-progress
+
+      - name: Run the unit/mock suite
+        working-directory: packages/${{ matrix.package }}
+        run: composer test
+
+  style:
+    runs-on: ubuntu-latest
+    name: code style
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240  # 2.37.2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress
+
+      # Mainly guards native_function_invocation: an unqualified sprintf() in a
+      # namespace blocks the compiler's specialised handling.
+      - name: Check style
+        run: composer style
+
+      # The version is declared in four places across two packages. Catch drift
+      # on the pull request, not when a release tag is rejected weeks later.
+      - name: Check declared versions agree
+        run: php tools/check-versions.php
+
+      # .gitignore ignores all dotfiles by default and allows specific ones back
+      # in. If one of those `!` lines breaks, a newly added workflow or config
+      # would be skipped by `git add .` without anyone noticing — so assert the
+      # ones that must ship are still visible to git.
+      - name: Dotfiles that must ship are not ignored
+        run: |
+          status=0
+          while read -r path; do
+            [ -z "$path" ] && continue
+            if git check-ignore -q "$path"; then
+              echo "::error file=.gitignore::$path is ignored but must be committed"
+              status=1
+            fi
+          done <<'PATHS'
+          .gitignore
+          .github/dependabot.yml
+          .github/workflows/tests.yaml
+          .github/workflows/openapi.yaml
+          .github/workflows/split.yaml
+          .php-cs-fixer.dist.php
+          packages/terraform-provider-domeneshop/.github/workflows/release.yaml
+          packages/terraform-provider-domeneshop/.golangci.yml
+          packages/terraform-provider-domeneshop/.goreleaser.yml
+          PATHS
+          exit $status
+
+  provider:
+    runs-on: ubuntu-latest
+    name: terraform-provider-domeneshop
+    defaults:
+      run:
+        working-directory: packages/terraform-provider-domeneshop
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up Go
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5  # v5.5.0
+        with:
+          go-version-file: packages/terraform-provider-domeneshop/go.mod
+          cache-dependency-path: packages/terraform-provider-domeneshop/go.sum
+
+      - name: Check formatting
+        run: test -z "$(gofmt -l .)" || { gofmt -l .; echo '::error::run gofmt -w .'; exit 1; }
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@4afd733a84b1f43292c63897423277bb0f9e6e3b  # v9.0.0
+        with:
+          version: v2.11
+          working-directory: packages/terraform-provider-domeneshop
+
+      - name: Build
+        run: go build ./...
+
+      - name: Test
+        run: go test ./... -race

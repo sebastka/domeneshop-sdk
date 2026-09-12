@@ -1,0 +1,58 @@
+# ---------------------------------------------------------------------------
+# Dotfiles are ignored by default, and allowed back in one by one.
+#
+# The default-deny is deliberate: a stray `.env`, `.idea/`, `.vscode/`, editor
+# swap file or tool cache is easy to commit by accident and occasionally
+# embarrassing. Opting each one in means nothing hidden reaches a commit without
+# somebody deciding it should.
+#
+# Adding a dotfile that belongs in the repo? Add a `!` line for it here, or git
+# will silently ignore it. `git check-ignore -v <path>` says which rule applies.
+#
+# Note the trailing slash on directories: git does not descend into an ignored
+# directory, so `!.github/` has to un-ignore the directory itself before
+# anything inside it can be considered.
+# ---------------------------------------------------------------------------
+.*
+!.gitignore
+!.github/
+!.php-cs-fixer.dist.php
+!.golangci.yml
+!.goreleaser.yml
+
+# Dependencies and lock files. The packages are libraries, so their locks are
+# not committed; each consumer resolves its own.
+/vendor/
+/packages/*/vendor/
+composer.lock
+packages/*/composer.lock
+node_modules/
+
+# Generated artefacts: the spec and the documentation pages are built, never
+# committed. CI publishes them.
+packages/*/build/
+
+# Local docs previews. These point at the docs router's proxy rather than the
+# real API, so they only mean anything behind `composer docs:preview` and must
+# never be shared as if they were the real pages.
+packages/*/build/*-preview.html
+
+# Go / Terraform provider
+packages/terraform-provider-domeneshop/terraform-provider-domeneshop
+packages/terraform-provider-domeneshop/dist/
+*.tfstate
+*.tfstate.*
+
+TODO.md
+
+# Key material. The dotfile default-deny above does not catch these — a GPG
+# export or a GitHub App private key lands as `private.asc` or `app.pem`, with
+# no leading dot. Generate them outside the working tree if you can; this is the
+# backstop for when you don't.
+*.asc
+*.gpg
+*.pem
+*.p12
+*.pfx
+*.key
+!**/testdata/**/*.key

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Domeneshop API — Redoc</title>
+  <style>
+    body { margin: 0; }
+    .ds-banner {
+      font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding: 12px 20px;
+      background: #fff8e1;
+      border-bottom: 1px solid #ffe082;
+      color: #5d4037;
+    }
+    .ds-banner strong { color: #3e2723; }
+    .ds-banner code {
+      background: rgba(0, 0, 0, .06);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-size: 13px;
+    }
+    .ds-banner a { color: #00695c; }
+    .ds-banner--live { background: #e8f5e9; border-bottom-color: #a5d6a7; color: #1b5e20; }
+    .ds-banner--live strong { color: #0b3d12; }
+  </style>
+</head>
+<body>
+  <!--__BANNER__-->
+
+  <div id="redoc"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/redoc@2.5.4/bundles/redoc.standalone.js"></script>
+  <script>
+    // Same three-placeholder contract as the other templates, so one builder
+    // fills in all of them. Redoc.init() takes the spec as an object, so it is
+    // inlined rather than fetched and this stays a single file.
+    const spec = /*__OPENAPI_SPEC__*/ null;
+    const overrides = /*__UI_OVERRIDES__*/ {};
+
+    Redoc.init(spec, Object.assign({
+      hideDownloadButton: false,
+      expandResponses: '200,201',
+      jsonSampleExpandLevel: 3,
+      theme: { colors: { primary: { main: '#00695c' } } },
+    }, overrides), document.getElementById('redoc'));
+  </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+{
+    "name": "sebastka/domeneshop-sdk",
+    "description": "Monorepo: PHP client, CLI and Laravel bridge for the Domeneshop API.",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Sebastian Karlsen",
+            "email": "sebastian@karlsen.fr"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "path",
+            "url": "packages/*"
+        }
+    ],
+    "require": {
+        "php": ">=8.4",
+        "sebastka/domeneshop-php": "*",
+        "sebastka/domeneshop-cli": "*",
+        "sebastka/domeneshop-laravel": "*"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": false
+        }
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.95"
+    },
+    "scripts": {
+        "style": "php-cs-fixer fix --dry-run --diff",
+        "style:fix": "php-cs-fixer fix"
+    },
+    "scripts-descriptions": {
+        "style": "Check code style across every package (the CI gate); writes nothing.",
+        "style:fix": "Apply the code style fixes."
+    }
+}

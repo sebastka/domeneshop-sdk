@@ -1,0 +1,15 @@
+; Copy to ~/.config/domeneshop/config.ini (or $XDG_CONFIG_HOME/domeneshop/config.ini)
+; and chmod 600 it. Generate credentials at https://www.domeneshop.no/admin?view=api
+;
+; Environment variables of the same name (uppercased, DOMENESHOP_-prefixed)
+; take precedence over everything here.
+
+token  = "your-api-token"
+secret = "your-api-secret"
+
+; Only override if you talk to a non-default endpoint.
+;base_uri = "https://api.domeneshop.no/v0"
+
+; HTTP timeouts in seconds (0 disables).
+;timeout         = 30
+;connect_timeout = 10

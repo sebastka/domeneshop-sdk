@@ -1,0 +1,44 @@
+---
+# Dependabot checks on a schedule; `interval` is how often it looks, not how
+# quickly it reacts. `daily` is the most frequent of the simple intervals, and
+# note that it means **weekdays only** (Mon-Fri), not all seven days. Nothing
+# below a day is available through `interval`.
+#
+# Two things are faster than any schedule when you want an update now:
+#   - editing this file triggers an immediate check;
+#   - Insights -> Dependency graph -> Dependabot -> "Check for updates" runs one
+#     on demand, per ecosystem.
+#
+# `open-pull-requests-limit` is raised from its default of 5 because our
+# auto-merge workflow deliberately leaves **major** bumps open for review. Those
+# accumulate, and once the limit is reached Dependabot stops opening *any* new
+# PRs for that ecosystem — including the patch and minor ones we do want merged
+# promptly. Keep majors triaged, or this backs up regardless of the limit.
+version: 2
+updates:
+  - package-ecosystem: composer
+    directories:
+      - /packages/domeneshop-php
+      - /packages/domeneshop-cli
+      - /packages/domeneshop-laravel
+    schedule:
+      interval: daily
+      time: "05:00"
+      timezone: Europe/Oslo
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: gomod
+    directory: /packages/terraform-provider-domeneshop
+    schedule:
+      interval: daily
+      time: "05:00"
+      timezone: Europe/Oslo
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+      time: "05:00"
+      timezone: Europe/Oslo
+    open-pull-requests-limit: 10

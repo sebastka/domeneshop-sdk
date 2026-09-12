@@ -1,0 +1,58 @@
+{
+    "name": "sebastka/domeneshop-cli",
+    "description": "Command-line interface for the Domeneshop API.",
+    "type": "project",
+    "license": "MIT",
+    "keywords": [
+        "domeneshop",
+        "dns",
+        "cli",
+        "console"
+    ],
+    "homepage": "https://github.com/sebastka/domeneshop-cli",
+    "authors": [
+        {
+            "name": "Sebastian Karlsen",
+            "email": "sebastian@karlsen.fr"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../domeneshop-php"
+        }
+    ],
+    "require": {
+        "php": ">=8.4",
+        "guzzlehttp/guzzle": "^7.10 || ^8.0",
+        "sebastka/domeneshop-php": "^0.1",
+        "symfony/console": "^7.0 || ^8.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.5 || ^12.0 || ^13.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Sebastka\\Domeneshop\\Cli\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Sebastka\\Domeneshop\\Cli\\Tests\\": "tests/"
+        }
+    },
+    "bin": [
+        "bin/domeneshop"
+    ],
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": false
+        }
+    }
+}

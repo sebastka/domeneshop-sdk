@@ -1,0 +1,67 @@
+{
+    "name": "sebastka/domeneshop-laravel",
+    "description": "Laravel integration (service provider + facade) for the Domeneshop PHP client.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "domeneshop",
+        "dns",
+        "laravel"
+    ],
+    "homepage": "https://github.com/sebastka/domeneshop-laravel",
+    "authors": [
+        {
+            "name": "Sebastian Karlsen",
+            "email": "sebastian@karlsen.fr"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../domeneshop-php"
+        }
+    ],
+    "require": {
+        "php": ">=8.4",
+        "guzzlehttp/guzzle": "^7.10 || ^8.0",
+        "sebastka/domeneshop-php": "^0.1",
+        "illuminate/support": "^11.0 || ^12.0 || ^13.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Sebastka\\Domeneshop\\Laravel\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Sebastka\\Domeneshop\\Laravel\\DomeneshopServiceProvider"
+            ],
+            "aliases": {
+                "Domeneshop": "Sebastka\\Domeneshop\\Laravel\\Facades\\Domeneshop"
+            }
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": false
+        }
+    },
+    "require-dev": {
+        "illuminate/config": "^13.31",
+        "illuminate/container": "^13.31",
+        "phpunit/phpunit": "^13.3",
+        "vlucas/phpdotenv": "^5.7"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Sebastka\\Domeneshop\\Laravel\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    }
+}

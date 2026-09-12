@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Domeneshop API — RapiDoc</title>
+  <style>
+    html, body { margin: 0; height: 100%; }
+    body { display: flex; flex-direction: column; }
+    rapi-doc { flex: 1 1 auto; }
+    .ds-banner {
+      flex: 0 0 auto;
+      font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding: 12px 20px;
+      background: #fff8e1;
+      border-bottom: 1px solid #ffe082;
+      color: #5d4037;
+    }
+    .ds-banner strong { color: #3e2723; }
+    .ds-banner code {
+      background: rgba(0, 0, 0, .06);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-size: 13px;
+    }
+    .ds-banner a { color: #00695c; }
+    .ds-banner--live { background: #e8f5e9; border-bottom-color: #a5d6a7; color: #1b5e20; }
+    .ds-banner--live strong { color: #0b3d12; }
+  </style>
+</head>
+<body>
+  <!--__BANNER__-->
+
+  <rapi-doc
+    id="doc"
+    render-style="read"
+    theme="light"
+    layout="row"
+    schema-style="table"
+    show-header="false"
+    show-info="true"
+    allow-authentication="true"
+    allow-spec-url-load="false"
+    allow-spec-file-load="false"
+    allow-server-selection="false"
+    allow-try="false"
+    regular-font="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+    primary-color="#00695c"
+  ></rapi-doc>
+
+  <script type="module" src="https://cdn.jsdelivr.net/npm/rapidoc@9.3.8/dist/rapidoc-min.js"></script>
+  <script>
+    // Same three-placeholder contract as the Swagger template, so one builder
+    // fills in both. The spec is inlined rather than fetched, which keeps this
+    // a single file that opens straight from disk.
+    const spec = /*__OPENAPI_SPEC__*/ null;
+    const overrides = /*__UI_OVERRIDES__*/ {};
+
+    const doc = document.getElementById('doc');
+
+    // RapiDoc takes its configuration as attributes, so the overrides are
+    // applied as attributes rather than merged into an options object.
+    for (const [name, value] of Object.entries(overrides)) {
+      doc.setAttribute(name, String(value));
+    }
+
+    // loadSpec() only exists once the custom element has been upgraded, which
+    // happens after the module script above executes — hence whenDefined().
+    customElements.whenDefined('rapi-doc').then(() => doc.loadSpec(spec));
+  </script>
+</body>
+</html>
