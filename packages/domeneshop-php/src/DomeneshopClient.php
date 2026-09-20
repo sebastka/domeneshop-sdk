@@ -49,7 +49,7 @@ final class DomeneshopClient
     /** Default connection timeout, in seconds (0 disables it). */
     public const DEFAULT_CONNECT_TIMEOUT = 10.0;
 
-    public const VERSION = '0.1.0';
+    public const VERSION = '0.2.0';
 
     private readonly Transport $transport;
 

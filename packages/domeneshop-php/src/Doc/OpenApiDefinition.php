@@ -19,7 +19,7 @@ use OpenApi\Attributes as OA;
  * doing the work means the spec cannot drift from the client.
  */
 #[OA\Info(
-    version: '0.1.0',
+    version: '0.2.0',
     title: 'Domeneshop API',
     description: "Reference for the Domeneshop API (v0), generated from the `sebastka/domeneshop-php` client.\n\n"
         . "This is an **unofficial** document. It is generated from the attributes on the client's own "
