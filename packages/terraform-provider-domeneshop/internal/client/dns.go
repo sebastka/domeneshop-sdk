@@ -2,9 +2,12 @@ package client
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 // Record types the API supports.
@@ -39,6 +42,90 @@ type DNSRecord struct {
 	Usage    *int64 `json:"usage,omitempty"`
 	Selector *int64 `json:"selector,omitempty"`
 	DType    *int64 `json:"dtype,omitempty"`
+}
+
+// apiInt64 is one of the API's optional numeric fields on the way in. The API
+// is not consistent about their JSON type: SRV records come back with priority,
+// weight and port as quoted strings ("port": "443"), and TLSA's usage, selector
+// and dtype behave the same way, while every other type reports plain numbers.
+// A missing field, null and an empty string all mean "does not apply".
+type apiInt64 struct {
+	value int64
+	set   bool
+}
+
+func (a *apiInt64) UnmarshalJSON(data []byte) error {
+	text := strings.TrimSpace(string(data))
+	if text == "null" {
+		return nil
+	}
+
+	// Unquote only succeeds on a JSON string; a bare number is left as it is.
+	if unquoted, err := strconv.Unquote(text); err == nil {
+		text = strings.TrimSpace(unquoted)
+	}
+	if text == "" {
+		return nil
+	}
+
+	value, err := strconv.ParseInt(text, 10, 64)
+	if err != nil {
+		return fmt.Errorf("%s is not a number", strings.TrimSpace(string(data)))
+	}
+
+	a.value, a.set = value, true
+
+	return nil
+}
+
+func (a apiInt64) pointer() *int64 {
+	if !a.set {
+		return nil
+	}
+
+	value := a.value
+
+	return &value
+}
+
+// UnmarshalJSON decodes a record tolerantly, accepting either a number or a
+// quoted number for every numeric field. Only reading is affected: records
+// still go out as plain numbers, which is what the API accepts on writes.
+func (r *DNSRecord) UnmarshalJSON(data []byte) error {
+	// plain drops the methods, so unmarshalling it does not recurse. The fields
+	// below shadow its numeric ones, being one level shallower.
+	type plain DNSRecord
+
+	var decoded struct {
+		*plain
+		ID       apiInt64 `json:"id"`
+		TTL      apiInt64 `json:"ttl"`
+		Priority apiInt64 `json:"priority"`
+		Weight   apiInt64 `json:"weight"`
+		Port     apiInt64 `json:"port"`
+		Usage    apiInt64 `json:"usage"`
+		Selector apiInt64 `json:"selector"`
+		DType    apiInt64 `json:"dtype"`
+	}
+	decoded.plain = (*plain)(r)
+
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		return err
+	}
+
+	r.ID = 0
+	if id := decoded.ID.pointer(); id != nil {
+		r.ID = *id
+	}
+	r.TTL = decoded.TTL.pointer()
+	r.Priority = decoded.Priority.pointer()
+	r.Weight = decoded.Weight.pointer()
+	r.Port = decoded.Port.pointer()
+	r.Usage = decoded.Usage.pointer()
+	r.Selector = decoded.Selector.pointer()
+	r.DType = decoded.DType.pointer()
+
+	return nil
 }
 
 func dnsPath(domainID int64) string {

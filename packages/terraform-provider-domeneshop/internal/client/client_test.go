@@ -201,6 +201,111 @@ func TestUpdateDNSRecordNeverSendsTheReadOnlyID(t *testing.T) {
 	}
 }
 
+func TestGetDNSRecordAcceptsStringsForNumericFields(t *testing.T) {
+	// What the API actually answers for an SRV record: the numbers are quoted.
+	c, _ := newTestClient(t, http.StatusOK, `{
+		"id": "5699249", "host": "_sip._tcp", "type": "SRV", "data": "sip.example.com",
+		"ttl": "3600", "priority": "0", "weight": "0", "port": "5060"
+	}`)
+
+	record, err := c.GetDNSRecord(context.Background(), 1957094, 5699249)
+	if err != nil {
+		t.Fatalf("GetDNSRecord: %v", err)
+	}
+
+	if record.ID != 5699249 {
+		t.Errorf("id = %d, want 5699249", record.ID)
+	}
+	for _, field := range []struct {
+		name string
+		got  *int64
+		want int64
+	}{
+		{"ttl", record.TTL, 3600},
+		{"priority", record.Priority, 0},
+		{"weight", record.Weight, 0},
+		{"port", record.Port, 5060},
+	} {
+		if field.got == nil {
+			t.Errorf("%s = nil, want %d", field.name, field.want)
+			continue
+		}
+		if *field.got != field.want {
+			t.Errorf("%s = %d, want %d", field.name, *field.got, field.want)
+		}
+	}
+}
+
+func TestGetDNSRecordStillAcceptsPlainNumbers(t *testing.T) {
+	c, _ := newTestClient(t, http.StatusOK, `{
+		"id": 9, "host": "www", "type": "A", "data": "203.0.113.10", "ttl": 300
+	}`)
+
+	record, err := c.GetDNSRecord(context.Background(), 3, 9)
+	if err != nil {
+		t.Fatalf("GetDNSRecord: %v", err)
+	}
+
+	if record.ID != 9 || record.Host != "www" || record.Data != "203.0.113.10" {
+		t.Errorf("unexpected record: %+v", record)
+	}
+	if record.TTL == nil || *record.TTL != 300 {
+		t.Errorf("ttl = %v", record.TTL)
+	}
+}
+
+func TestDNSRecordLeavesInapplicableFieldsUnset(t *testing.T) {
+	// null, an empty string and an absent key all mean "does not apply", and
+	// have to stay nil rather than becoming a zero the write path would send.
+	c, _ := newTestClient(t, http.StatusOK, `{
+		"id": 9, "host": "www", "type": "A", "data": "203.0.113.10",
+		"priority": null, "weight": ""
+	}`)
+
+	record, err := c.GetDNSRecord(context.Background(), 3, 9)
+	if err != nil {
+		t.Fatalf("GetDNSRecord: %v", err)
+	}
+
+	if record.Priority != nil || record.Weight != nil || record.Port != nil || record.TTL != nil {
+		t.Errorf("unexpected extras: %+v", record)
+	}
+}
+
+func TestListDNSRecordsAcceptsStringsForNumericFields(t *testing.T) {
+	c, _ := newTestClient(t, http.StatusOK, `[
+		{"id": 1, "host": "www", "type": "A", "data": "203.0.113.10", "ttl": 300},
+		{"id": "2", "host": "_sip._tcp", "type": "SRV", "data": "sip.example.com",
+		 "priority": "10", "weight": "5", "port": "5060"},
+		{"id": 3, "host": "_443._tcp", "type": "TLSA", "data": "abc",
+		 "usage": "3", "selector": "1", "dtype": "1"}
+	]`)
+
+	records, err := c.ListDNSRecords(context.Background(), 3, "", "")
+	if err != nil {
+		t.Fatalf("ListDNSRecords: %v", err)
+	}
+	if len(records) != 3 {
+		t.Fatalf("got %d records, want 3", len(records))
+	}
+
+	if records[1].ID != 2 || records[1].Port == nil || *records[1].Port != 5060 {
+		t.Errorf("srv record = %+v", records[1])
+	}
+	if records[2].Usage == nil || *records[2].Usage != 3 || records[2].DType == nil || *records[2].DType != 1 {
+		t.Errorf("tlsa record = %+v", records[2])
+	}
+}
+
+func TestDNSRecordRejectsAValueThatIsNotANumber(t *testing.T) {
+	c, _ := newTestClient(t, http.StatusOK, `{"id": 9, "host": "@", "type": "A", "port": "not-a-number"}`)
+
+	_, err := c.GetDNSRecord(context.Background(), 3, 9)
+	if err == nil || !strings.Contains(err.Error(), "not a number") {
+		t.Fatalf("err = %v, want a decoding error", err)
+	}
+}
+
 func TestDeleteDNSRecordIssuesADelete(t *testing.T) {
 	c, rec := newTestClient(t, http.StatusNoContent, ``)
 
