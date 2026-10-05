@@ -1,15 +1,15 @@
 {
-    "name": "sebastka/domeneshop-cli",
-    "description": "Command-line interface for the Domeneshop API.",
-    "type": "project",
+    "name": "sebastka/domeneshop-dashboard",
+    "description": "Read-only access to Domeneshop dashboard functions that the API does not expose. Unofficial and unsupported.",
+    "type": "library",
     "license": "MIT",
     "keywords": [
         "domeneshop",
         "dns",
-        "cli",
-        "console"
+        "dnssec",
+        "nameservers"
     ],
-    "homepage": "https://github.com/sebastka/domeneshop-cli",
+    "homepage": "https://github.com/sebastka/domeneshop-dashboard",
     "authors": [
         {
             "name": "Sebastian Karlsen",
@@ -21,36 +21,43 @@
     "repositories": [
         {
             "type": "path",
+            "url": "../domeneshop-cli*"
+        },
+        {
+            "type": "path",
             "url": "../domeneshop-php*"
         }
     ],
     "require": {
         "php": ">=8.4",
-        "guzzlehttp/guzzle": "^7.10 || ^8.0",
-        "sebastka/domeneshop-php": "^0.3",
-        "symfony/console": "^7.0 || ^8.0"
+        "ext-dom": "*",
+        "ext-json": "*",
+        "php-http/discovery": "^1.20",
+        "psr/http-client": "^1.0",
+        "psr/http-factory": "^1.0",
+        "psr/http-message": "^1.1 || ^2.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^11.5 || ^12.0 || ^13.0"
+        "guzzlehttp/guzzle": "^7.10 || ^8.0",
+        "phpunit/phpunit": "^11.5 || ^12.0 || ^13.0",
+        "sebastka/domeneshop-cli": "^0.3",
+        "symfony/console": "^7.0 || ^8.0"
+    },
+    "suggest": {
+        "sebastka/domeneshop-cli": "Adds the dashboard:* commands to the `domeneshop` CLI."
     },
     "autoload": {
         "psr-4": {
-            "Sebastka\\Domeneshop\\Cli\\": "src/"
+            "Sebastka\\Domeneshop\\Dashboard\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Sebastka\\Domeneshop\\Cli\\Tests\\": "tests/"
+            "Sebastka\\Domeneshop\\Dashboard\\Tests\\": "tests/"
         }
     },
-    "bin": [
-        "bin/domeneshop"
-    ],
     "scripts": {
         "test": "phpunit"
-    },
-    "suggest": {
-        "sebastka/domeneshop-dashboard": "Adds read-only dashboard:* commands for data the API does not expose (contacts, nameservers, DNSSEC). Unofficial: scrapes the web dashboard."
     },
     "extra": {
         "branch-alias": {

@@ -8,16 +8,19 @@ A PHP client, CLI, Laravel bridge, and Terraform/OpenTofu provider for the [Dome
 
 ## Layout
 
-A monorepo of four independently-installable packages:
+A monorepo of five independently-installable packages:
 
 | Package | Path | Depends on | Use it from |
 | --- | --- | --- | --- |
 | `sebastka/domeneshop-php` | [`packages/domeneshop-php`](packages/domeneshop-php) | **PSR-18/17 interfaces only** | Any PHP application |
 | `sebastka/domeneshop-cli` | [`packages/domeneshop-cli`](packages/domeneshop-cli) | core + Symfony Console | Ops / humans / scripts |
 | `sebastka/domeneshop-laravel` | [`packages/domeneshop-laravel`](packages/domeneshop-laravel) | core + `illuminate/support` | Laravel apps |
+| `sebastka/domeneshop-dashboard` | [`packages/domeneshop-dashboard`](packages/domeneshop-dashboard) | PSR-18/17 + `ext-dom` | Dashboard-only data — **unofficial, scrapes the web UI** |
 | `terraform-provider-domeneshop` | [`packages/terraform-provider-domeneshop`](packages/terraform-provider-domeneshop) | Go, standalone | Terraform / OpenTofu |
 
 The PHP core carries **no framework dependency and no HTTP-client dependency**. It codes against the PSR-18 and PSR-17 interfaces and finds whichever implementation your project already has, so it will not drag a second HTTP stack into an application that has one. The CLI and Laravel packages pin Guzzle, so those stay zero-config.
+
+`domeneshop-dashboard` is the odd one out, and deliberately separate: contacts, nameservers, glue and DNSSEC have no API equivalent (see [NOTES.md](NOTES.md#what-the-api-does-not-offer)), so it scrapes the web dashboard with a session cookie. It carries none of the API packages' guarantees. Installed alongside the CLI, its commands appear under `dashboard:` in the same binary; the CLI takes no dependency on it.
 
 The Terraform provider is a Go binary and shares no code with the PHP packages — a provider has to ship as a single static binary — but it targets the same API version and mirrors the same models.
 

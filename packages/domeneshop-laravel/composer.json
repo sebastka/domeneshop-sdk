@@ -20,13 +20,13 @@
     "repositories": [
         {
             "type": "path",
-            "url": "../domeneshop-php"
+            "url": "../domeneshop-php*"
         }
     ],
     "require": {
         "php": ">=8.4",
         "guzzlehttp/guzzle": "^7.10 || ^8.0",
-        "sebastka/domeneshop-php": "^0.2",
+        "sebastka/domeneshop-php": "^0.3",
         "illuminate/support": "^11.0 || ^12.0 || ^13.0"
     },
     "autoload": {
@@ -35,6 +35,10 @@
         }
     },
     "extra": {
+        "branch-alias": {
+            "dev-master": "0.3.x-dev",
+            "dev-main": "0.3.x-dev"
+        },
         "laravel": {
             "providers": [
                 "Sebastka\\Domeneshop\\Laravel\\DomeneshopServiceProvider"

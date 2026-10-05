@@ -79,6 +79,37 @@ The method is worth stating, because a bare `404` is ambiguous here: the API ret
 
 The conclusion is that `api.domeneshop.no/v0` implements **exactly** the fifteen operations its documentation describes, with nothing hidden. Anything the dashboard can do beyond those fifteen is dashboard-only, and reaching it would mean driving the web interface with a session cookie rather than the API.
 
+## Dashboard pages (`sebastka/domeneshop-dashboard`)
+
+Notes on the web dashboard itself, from parsing real pages for the scraping package. The dashboard has no contract at all, so these are observations of one account at one point in time, not promises.
+
+**A page that does not apply is not an error.** `GET /admin?id=<id>&edit=<page>` answers with `200` and the *domain overview page* when the requested editor does not exist for that domain, rather than a `404` or any message. Nothing in the response says so. Every parser therefore checks the hidden `edit` input that names the page, and treats the overview as its own outcome (`PageUnavailableException`) rather than as an empty result.
+
+**DNSSEC lives in two different places, depending on who runs the nameservers.**
+
+| Nameservers | Where DNSSEC state lives | What `edit=dnssec` does |
+| --- | --- | --- |
+| External | DS records you publish, on the DNSSEC page | Serves the DS editor |
+| Domeneshop's (`*.hyp.net`) | "Bruk DNSSEC" checkbox on the nameservers page | Serves the domain overview instead |
+
+For a Domeneshop-hosted domain, Domeneshop signs the zone and publishes the DS records itself, and the dashboard shows none of them: both `.no` domains in the test account had **two DS records each in the parent zone** while the dashboard offered nothing to read. Reporting "no DS records" there would be wrong in the most dangerous direction, so the package reports `records: null` with `managed_by_domeneshop: true`.
+
+Where the DS editor *is* served, what it lists matches reality: across six domains on external nameservers, every parsed record (keytag, algorithm, digest type, digest) was identical to the `DS` record in the parent zone.
+
+**Contact schemas vary by TLD, and by holder type.** There is no single contact layout to parse. Observed:
+
+| Domain | Contacts | Notable fields |
+| --- | --- | --- |
+| `.no`, organisation holder | owner only | `o_handle`, `o_orgno` |
+| `.no`, private-person holder | owner + technical | `o_vatno` holding a Norid PID (`N.PRI.…`), displayed as "PID"; owner name fields sent twice, filled then empty |
+| `.com`, `.org`, `.info`, `.app`, `.fr` | owner + administrative + technical | fax fields; `hide_email` and `hide_personaldata` present on some TLDs and absent on others (`.fr` has neither) |
+
+Field names carry a role prefix (`o_`, `a_`, `t_`), which is the only convention stable enough to parse against. The billing contact is account-level and rendered as text rather than form fields.
+
+**Glue records remain unobserved.** No domain in the test account has one, so the markup of an existing glue row has never been seen and is not guessed at; the parser recognises the empty table and refuses anything else.
+
+**Other things worth knowing.** Every signed-in page carries a hidden mobile login form posting to `/login`, so the presence of a login form says nothing about whether the session is valid — detection uses the sign-out link instead. The `ns`, `glue` and `dnssec` pages carry a per-page `auth` CSRF token, which will matter if writes are ever added, and must be redacted from any saved page. The login form submits a WebGL device fingerprint (`ua_gpu`, `ua_platform`, …), which is why a session has to be captured from an ordinary browser.
+
 ## What our generated spec changes
 
 Our spec describes the **same fifteen operations across the same nine paths** — coverage is identical, so nothing upstream documents was dropped. The differences are corrections:

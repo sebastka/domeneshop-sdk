@@ -20,11 +20,21 @@
 !.golangci.yml
 !.goreleaser.yml
 
-# Dependencies and lock files. The packages are libraries, so their locks are
-# not committed; each consumer resolves its own.
+# Dependencies and lock files.
+#
+# The root lock IS committed. The root package is not published: it exists to
+# pin the tooling the repository runs on itself — php-cs-fixer, swagger-php,
+# PHPUnit — so a new release of one of those cannot change style or docs output
+# halfway through a pull request. Dependabot keeps it current.
+#
+# The package locks are not committed, and must not be. A package lock pins its
+# sibling as a *path* dist (`../domeneshop-php`), which exists only inside this
+# monorepo; the split copies tracked files verbatim, so a committed lock would
+# land in the standalone package repository and make `composer install` there
+# fail on a path that is not present. Consumers resolve their own anyway: a
+# dependency's lock file is never read.
 /vendor/
 /packages/*/vendor/
-composer.lock
 packages/*/composer.lock
 node_modules/
 

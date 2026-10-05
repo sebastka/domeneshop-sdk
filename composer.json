@@ -19,9 +19,10 @@
     ],
     "require": {
         "php": ">=8.4",
-        "sebastka/domeneshop-php": "*",
         "sebastka/domeneshop-cli": "*",
-        "sebastka/domeneshop-laravel": "*"
+        "sebastka/domeneshop-dashboard": "*",
+        "sebastka/domeneshop-laravel": "*",
+        "sebastka/domeneshop-php": "*"
     },
     "config": {
         "sort-packages": true,

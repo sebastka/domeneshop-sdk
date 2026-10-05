@@ -31,18 +31,31 @@ $sources = [
         'pattern' => "/public const VERSION = '([^']+)'/",
         'kind' => 'exact',
     ],
+    'dashboard VERSION' => [
+        'file' => 'packages/domeneshop-dashboard/src/DashboardClient.php',
+        'pattern' => "/public const VERSION = '([^']+)'/",
+        'kind' => 'exact',
+    ],
     'openapi info.version' => [
         'file' => 'packages/domeneshop-php/src/Doc/OpenApiDefinition.php',
         'pattern' => "/version: '([^']+)'/",
         'kind' => 'exact',
     ],
-    'composer branch-alias' => [
-        'file' => 'packages/domeneshop-php/composer.json',
+];
+
+// Every package publishes a dev-master branch alias, and they must all track the
+// same minor. A missing or stale alias is not cosmetic: a sibling that requires
+// "^0.1" through a path repository cannot resolve a package whose dev-master is
+// not aliased to 0.1.x-dev. That is how the dashboard package first failed to
+// install, and why every alias is checked here rather than only one.
+foreach (['domeneshop-php', 'domeneshop-cli', 'domeneshop-laravel', 'domeneshop-dashboard'] as $package) {
+    $sources[$package . ' branch-alias'] = [
+        'file' => 'packages/' . $package . '/composer.json',
         // e.g. "0.1.x-dev" — only the major.minor is meaningful.
         'pattern' => '/"dev-master":\s*"(\d+\.\d+)\.x-dev"/',
         'kind' => 'minor',
-    ],
-];
+    ];
+}
 
 $expected = $argv[1] ?? null;
 if ($expected !== null && preg_match('/^\d+\.\d+\.\d+$/', $expected) !== 1) {
@@ -73,6 +86,36 @@ foreach ($sources as $label => $source) {
     printf("  %-24s %-10s (%s)\n", $label, $m[1], $source['file']);
 }
 
+// The packages also depend on each other, through path repositories that outrank
+// Packagist. Composer reads "^0.1" as ">=0.1 <0.2", so once the branch aliases
+// move to a new minor a stale constraint does not merely warn — it leaves the
+// package impossible to install at all. These are found by scanning rather than
+// listed, so a new package, or a new dependency between two of them, is covered
+// without touching this file. A constraint written as anything other than a
+// single caret is left alone.
+$constraints = [];
+
+foreach (glob($root . '/packages/*/composer.json') ?: [] as $path) {
+    $contents = @file_get_contents($path);
+
+    if ($contents === false) {
+        printf("  %-24s %s\n", basename(dirname($path)), 'FILE MISSING: ' . $path);
+        $failed = true;
+        continue;
+    }
+
+    $package = basename(dirname($path));
+    // "suggest" carries prose rather than a constraint, so it must not be read
+    // as one — hence the anchor on a caret and a bare major.minor.
+    preg_match_all('/"sebastka\/([a-z0-9-]+)":\s*"\^(\d+\.\d+)"/', $contents, $matches, PREG_SET_ORDER);
+
+    foreach ($matches as $match) {
+        $label = $package . ' requires ' . $match[1];
+        $constraints[] = ['label' => $label, 'value' => $match[2]];
+        printf("  %-24s %-10s (%s)\n", $label, '^' . $match[2], 'packages/' . $package . '/composer.json');
+    }
+}
+
 if ($failed) {
     fwrite(STDERR, "\nCould not read every version.\n");
     exit(1);
@@ -100,6 +143,18 @@ foreach ($found as $label => $v) {
             "%s is %s.x-dev but the code says %s — the alias must track the same minor.\n",
             $label,
             $v['value'],
+            $version,
+        ));
+        exit(1);
+    }
+}
+
+foreach ($constraints as $constraint) {
+    if ($constraint['value'] !== $minor) {
+        fwrite(STDERR, sprintf(
+            "%s at ^%s, which cannot resolve the %s the path repositories now offer.\n",
+            $constraint['label'],
+            $constraint['value'],
             $version,
         ));
         exit(1);
