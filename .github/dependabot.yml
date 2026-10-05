@@ -18,9 +18,13 @@ version: 2
 updates:
   - package-ecosystem: composer
     directories:
+      # The root manifest is the repository's own tooling, and the only Composer
+      # lock file committed here; see .gitignore.
+      - /
       - /packages/domeneshop-php
       - /packages/domeneshop-cli
       - /packages/domeneshop-laravel
+      - /packages/domeneshop-dashboard
     schedule:
       interval: daily
       time: "05:00"

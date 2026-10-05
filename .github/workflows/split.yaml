@@ -21,6 +21,7 @@ jobs:
           - domeneshop-php
           - domeneshop-cli
           - domeneshop-laravel
+          - domeneshop-dashboard
           - terraform-provider-domeneshop
     name: ${{ matrix.package }}
     steps:
@@ -73,6 +74,7 @@ jobs:
           - domeneshop-php
           - domeneshop-cli
           - domeneshop-laravel
+          - domeneshop-dashboard
     runs-on: ubuntu-latest
     steps:
       - name: Ask Packagist to update sebastka/${{ matrix.package }}
