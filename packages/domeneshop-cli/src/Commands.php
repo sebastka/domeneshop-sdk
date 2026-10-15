@@ -96,7 +96,7 @@ final class Commands
     {
         $recordArguments = [
             ['domain-id', true, 'The numeric domain id (see domains:list)'],
-            ['type', true, 'Record type: A, AAAA, CNAME, MX, SRV, TLSA or TXT'],
+            ['type', true, 'Record type: A, AAAA, CNAME, MX, NS, SRV, TLSA or TXT'],
             ['host', true, 'The host/subdomain; @ for the zone apex'],
             ['data', true, 'The record value (address, hostname, text or TLSA hash)'],
         ];
@@ -161,7 +161,7 @@ final class Commands
                 [
                     ['domain-id', true, 'The numeric domain id'],
                     ['record-id', true, 'The numeric record id (see dns:list)'],
-                    ['type', true, 'Record type: A, AAAA, CNAME, MX, SRV, TLSA or TXT'],
+                    ['type', true, 'Record type: A, AAAA, CNAME, MX, NS, SRV, TLSA or TXT'],
                     ['host', true, 'The host/subdomain; @ for the zone apex'],
                     ['data', true, 'The record value'],
                 ],

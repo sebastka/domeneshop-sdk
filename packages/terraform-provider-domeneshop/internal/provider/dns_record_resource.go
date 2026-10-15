@@ -108,7 +108,7 @@ func (r *dnsRecordResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 			},
 			"data": schema.StringAttribute{
 				MarkdownDescription: "The record value: an IPv4 address for `A`, an IPv6 address for `AAAA`, " +
-					"a hostname for `CNAME`/`MX`/`SRV`, freeform text for `TXT`, or the hash for `TLSA`.",
+					"a hostname for `CNAME`/`MX`/`NS`/`SRV`, freeform text for `TXT`, or the hash for `TLSA`.",
 				Required: true,
 			},
 			"ttl": schema.Int64Attribute{

@@ -11,6 +11,7 @@ enum RecordType: string
     case AAAA = 'AAAA';
     case CNAME = 'CNAME';
     case MX = 'MX';
+    case NS = 'NS';
     case SRV = 'SRV';
     case TLSA = 'TLSA';
     case TXT = 'TXT';

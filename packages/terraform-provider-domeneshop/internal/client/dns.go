@@ -16,6 +16,7 @@ const (
 	RecordTypeAAAA  = "AAAA"
 	RecordTypeCNAME = "CNAME"
 	RecordTypeMX    = "MX"
+	RecordTypeNS    = "NS"
 	RecordTypeSRV   = "SRV"
 	RecordTypeTLSA  = "TLSA"
 	RecordTypeTXT   = "TXT"
@@ -24,7 +25,7 @@ const (
 // RecordTypes lists every supported record type, for schema validation.
 var RecordTypes = []string{
 	RecordTypeA, RecordTypeAAAA, RecordTypeCNAME,
-	RecordTypeMX, RecordTypeSRV, RecordTypeTLSA, RecordTypeTXT,
+	RecordTypeMX, RecordTypeNS, RecordTypeSRV, RecordTypeTLSA, RecordTypeTXT,
 }
 
 // DNSRecord is the union of every record shape the API accepts. The extras are

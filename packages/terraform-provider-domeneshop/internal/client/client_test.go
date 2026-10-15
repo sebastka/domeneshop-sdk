@@ -183,6 +183,45 @@ func TestCreateDNSRecordSendsMxPriority(t *testing.T) {
 	}
 }
 
+func TestCreateDNSRecordSendsAnNSDelegation(t *testing.T) {
+	c, rec := newTestClient(t, http.StatusCreated, `{"id": 1}`)
+
+	_, err := c.CreateDNSRecord(context.Background(), 3, DNSRecord{
+		Host: "lab", Type: RecordTypeNS, Data: "ns1.lab.example.com",
+	})
+	if err != nil {
+		t.Fatalf("CreateDNSRecord: %v", err)
+	}
+
+	var sent map[string]any
+	if err := json.Unmarshal([]byte(rec.body), &sent); err != nil {
+		t.Fatalf("decoding sent body: %v", err)
+	}
+	want := map[string]any{"host": "lab", "type": "NS", "data": "ns1.lab.example.com"}
+	if len(sent) != len(want) {
+		t.Errorf("body = %s, want exactly host, type and data", rec.body)
+	}
+	for key, value := range want {
+		if sent[key] != value {
+			t.Errorf("%s = %v, want %v", key, sent[key], value)
+		}
+	}
+}
+
+func TestListDNSRecordsDecodesAnNSDelegation(t *testing.T) {
+	c, _ := newTestClient(t, http.StatusOK, `[
+		{"id": 8, "host": "lab", "type": "NS", "data": "ns1.lab.example.com.", "ttl": 3600}
+	]`)
+
+	records, err := c.ListDNSRecords(context.Background(), 3, "", RecordTypeNS)
+	if err != nil {
+		t.Fatalf("ListDNSRecords: %v", err)
+	}
+	if len(records) != 1 || records[0].Type != RecordTypeNS || records[0].Data != "ns1.lab.example.com." {
+		t.Errorf("records = %+v", records)
+	}
+}
+
 func TestUpdateDNSRecordNeverSendsTheReadOnlyID(t *testing.T) {
 	c, rec := newTestClient(t, http.StatusNoContent, ``)
 

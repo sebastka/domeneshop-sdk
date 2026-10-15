@@ -53,16 +53,17 @@ Every operation the API documents is implemented.
 
 ### DNS records
 
-The API models records as a `oneOf` over seven shapes that share `host` and `ttl` but differ in their payload. Rather than one wide class with mostly-null properties, each shape is its own class, so the fields a record type requires are exactly the fields its constructor demands:
+The API models records as a `oneOf` over eight shapes (seven documented, plus `NS`, which the live API accepts — see [NOTES.md](../../NOTES.md)) that share `host` and `ttl` but differ in their payload. Rather than one wide class with mostly-null properties, each shape is its own class, so the fields a record type requires are exactly the fields its constructor demands:
 
 ```php
-use Sebastka\Domeneshop\Model\{ARecord, AaaaRecord, CnameRecord, MxRecord, SrvRecord, TlsaRecord, TxtRecord};
+use Sebastka\Domeneshop\Model\{ARecord, AaaaRecord, CnameRecord, MxRecord, NsRecord, SrvRecord, TlsaRecord, TxtRecord};
 
 new ARecord(host: 'www', data: '203.0.113.10');
 new AaaaRecord(host: '@', data: '2001:db8::1');
 new CnameRecord(host: 'blog', data: 'example.com');
 new TxtRecord(host: '@', data: 'v=spf1 include:_spf.domeneshop.no ~all');
 new MxRecord(host: '@', data: 'mx.example.com', priority: 10);
+new NsRecord(host: 'lab', data: 'ns1.lab.example.com');
 new SrvRecord(host: '_sip._tcp', data: 'sip.example.com', priority: 10, weight: 100, port: 5060);
 new TlsaRecord(host: '_443._tcp', data: $hash, usage: 3, selector: 1, dtype: 1);
 ```
@@ -264,11 +265,12 @@ Both documents describe the same fifteen operations across the same nine paths �
 | Operations declaring `basicAuth` | 0 | **all 15** |
 | `401` responses | undocumented | documented |
 | `TLSA` in the record-model reference | absent | present |
+| `NS` record type | absent, though the API accepts it | present |
 | OpenAPI version | 3.0.1 | 3.2.0 |
 
 The generated spec keeps the API's own oddities rather than quietly correcting them, since they are what the wire actually does — `Invoice.type` really is spelled `credit_node`, and the forwards collection path really does need its trailing slash. Both are called out in the spec's descriptions.
 
-The monorepo carries the **full catalogue** in its `NOTES.md`: every defect found in the published definition, every gap between the prose reference and the schema, every API behaviour we deliberately preserve rather than correct, and everything the production API does differently — 30 items, each with how it was established.
+The monorepo carries the **full catalogue** in its `NOTES.md`: every defect found in the published definition, every gap between the prose reference and the schema, every API behaviour we deliberately preserve rather than correct, and everything the production API does differently — 31 items, each with how it was established.
 
 ## Tests
 
