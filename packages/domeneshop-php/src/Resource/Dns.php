@@ -32,7 +32,7 @@ final class Dns
         parameters: [
             new OA\Parameter(ref: '#/components/parameters/DomainId'),
             new OA\Parameter(name: 'host', in: 'query', required: false, description: 'Only return records whose `host` matches this string.', schema: new OA\Schema(type: 'string')),
-            new OA\Parameter(name: 'type', in: 'query', required: false, description: 'Only return records of this type.', schema: new OA\Schema(type: 'string', enum: ['A', 'AAAA', 'CNAME', 'MX', 'SRV', 'TLSA', 'TXT'])),
+            new OA\Parameter(name: 'type', in: 'query', required: false, description: 'Only return records of this type.', schema: new OA\Schema(type: 'string', enum: ['A', 'AAAA', 'CNAME', 'MX', 'NS', 'SRV', 'TLSA', 'TXT'])),
         ],
         responses: [
             new OA\Response(response: 401, ref: '#/components/responses/Unauthorized'),

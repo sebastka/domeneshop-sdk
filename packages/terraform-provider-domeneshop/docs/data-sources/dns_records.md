@@ -22,7 +22,7 @@ Read a domain's existing DNS records, optionally narrowed by host and type. Usef
 ### Optional
 
 - `host` (String) Only return records for this host.
-- `type` (String) Only return records of this type. One of `A`, `AAAA`, `CNAME`, `MX`, `SRV`, `TLSA`, `TXT`.
+- `type` (String) Only return records of this type. One of `A`, `AAAA`, `CNAME`, `MX`, `NS`, `SRV`, `TLSA`, `TXT`.
 
 ### Read-Only
 

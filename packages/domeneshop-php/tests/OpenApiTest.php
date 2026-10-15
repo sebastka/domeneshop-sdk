@@ -166,7 +166,7 @@ final class OpenApiTest extends TestCase
         $schemas = self::decoded()['components']['schemas'];
         $union = array_column(self::decoded()['components']['schemas']['DNSRecord']['oneOf'], '$ref');
 
-        foreach (['A', 'AAAA', 'CNAME', 'MX', 'SRV', 'TLSA', 'TXT'] as $type) {
+        foreach (['A', 'AAAA', 'CNAME', 'MX', 'NS', 'SRV', 'TLSA', 'TXT'] as $type) {
             self::assertArrayHasKey($type, $schemas, "No schema for {$type}");
             self::assertContains("#/components/schemas/{$type}", $union, "{$type} is missing from DNSRecord");
         }

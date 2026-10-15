@@ -41,7 +41,7 @@ Generate an API token and secret at [domeneshop.no/admin?view=api](https://www.d
 
 | Resource | Notes |
 | --- | --- |
-| `domeneshop_dns_record` | All seven types: `A`, `AAAA`, `CNAME`, `MX`, `SRV`, `TLSA`, `TXT` |
+| `domeneshop_dns_record` | All eight types: `A`, `AAAA`, `CNAME`, `MX`, `NS`, `SRV`, `TLSA`, `TXT` |
 
 `domeneshop_http_forward` is **not offered** — see below.
 

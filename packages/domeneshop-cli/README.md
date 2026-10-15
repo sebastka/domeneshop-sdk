@@ -101,7 +101,7 @@ domeneshop invoices:list --status=unpaid
 
 | Type | Required flags |
 | --- | --- |
-| `A`, `AAAA`, `CNAME`, `TXT` | — |
+| `A`, `AAAA`, `CNAME`, `NS`, `TXT` | — |
 | `MX` | `--priority` |
 | `SRV` | `--priority --weight --port` |
 | `TLSA` | `--usage --selector --dtype` |
