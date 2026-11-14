@@ -105,6 +105,14 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'priority', type: 'integer', format: 'int32', example: 10, description: 'Preference; lower values are usually tried first, though nothing guarantees it.'),
     ]),
 ])]
+#[OA\Schema(schema: 'NS', description: "Delegates the host to other nameservers.\n\n"
+    . 'Absent from the official OpenAPI definition, but the live API creates and returns it.', allOf: [
+    new OA\Schema(ref: '#/components/schemas/BaseRecord'),
+    new OA\Schema(type: 'object', required: ['type', 'data'], properties: [
+        new OA\Property(property: 'type', type: 'string', enum: ['NS']),
+        new OA\Property(property: 'data', type: 'string', format: 'hostname', example: 'ns1.lab.example.com', description: 'The nameserver hostname.'),
+    ]),
+])]
 #[OA\Schema(schema: 'SRV', description: 'Advertises the host and port of a service. The `host` follows the `_service._protocol` convention.', allOf: [
     new OA\Schema(ref: '#/components/schemas/BaseRecord'),
     new OA\Schema(type: 'object', required: ['type', 'data', 'priority', 'weight', 'port'], properties: [
@@ -141,6 +149,7 @@ use OpenApi\Attributes as OA;
         new OA\Schema(ref: '#/components/schemas/AAAA'),
         new OA\Schema(ref: '#/components/schemas/CNAME'),
         new OA\Schema(ref: '#/components/schemas/MX'),
+        new OA\Schema(ref: '#/components/schemas/NS'),
         new OA\Schema(ref: '#/components/schemas/SRV'),
         new OA\Schema(ref: '#/components/schemas/TLSA'),
         new OA\Schema(ref: '#/components/schemas/TXT'),

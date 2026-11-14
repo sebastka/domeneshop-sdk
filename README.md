@@ -82,7 +82,7 @@ Every endpoint the API documents is implemented across the PHP packages:
 | Invoices | `GET /invoices`, `GET /invoices/{id}` | ✅ | ✅ | — |
 | Dynamic DNS | `GET /dyndns/update` | ✅ | ✅ | — |
 
-All seven DNS record types are supported: `A`, `AAAA`, `CNAME`, `MX`, `SRV`, `TLSA`, `TXT` — including `TLSA`, which the official documentation defines as a schema but leaves out of its record-model reference. See [NOTES.md](NOTES.md).
+Eight DNS record types are supported: `A`, `AAAA`, `CNAME`, `MX`, `NS`, `SRV`, `TLSA`, `TXT` — including `TLSA`, which the official documentation defines as a schema but leaves out of its record-model reference, and `NS`, which it does not mention at all but the live API accepts. See [NOTES.md](NOTES.md).
 
 **HTTP forwards are only partly usable, and not through Terraform at all.** The API's per-host forwards endpoint answers `404` for every host, so a forward can be created and listed but never updated or deleted through the API — only in the Domeneshop web interface. The PHP client and CLI still expose the operations (they send exactly what the documentation specifies, so they work the moment it is fixed), but the Terraform resource is **disabled**, because a `destroy` that always fails is worse than no resource. See [NOTES.md item 25](NOTES.md#live-behaviour-the-documentation-gets-wrong).
 
@@ -118,7 +118,7 @@ composer docs:preview     # http://127.0.0.1:8088/
 
 That serves the renderers through a small local router whose `/__proxy` prefix forwards to the API server-side, so requests are same-origin and CORS never applies. Visit `/` for a list of everything built; authorize with your token and secret and the Swagger UI and RapiDoc consoles work. **Redoc has no try-it console at all** — that is a Redocly paid feature — so its preview is reading only, and the listing labels it as such. **Calls are real** — a `POST` creates a record. The proxy forwards to one upstream only, binds to localhost, forwards no headers beyond `Authorization`/`Content-Type`/`Accept`, follows no redirects, and logs nothing. Details in the [core package's README](packages/domeneshop-php#live-preview-composer-docspreview).
 
-It covers the same fifteen operations as the official document, and fixes what that one gets wrong: every operation gets an `operationId` (upstream names only five), the `POST .../forwards/` request body is documented (upstream omits it entirely), `TLSA` requires its `type` and `data`, and every operation declares `basicAuth`. The full comparison is in [NOTES.md](NOTES.md#what-our-generated-spec-changes).
+It covers the same fifteen operations as the official document, and fixes what that one gets wrong: every operation gets an `operationId` (upstream names only five), the `POST .../forwards/` request body is documented (upstream omits it entirely), `TLSA` requires its `type` and `data`, the `NS` type the live API accepts is documented, and every operation declares `basicAuth`. The full comparison is in [NOTES.md](NOTES.md#what-our-generated-spec-changes).
 
 [`assets/domeneshop-openapi.json`](assets/domeneshop-openapi.json) is the **upstream** definition, extracted from the published documentation and kept for reference and diffing. It is source material, not generated output.
 

@@ -25,6 +25,15 @@ resource "domeneshop_dns_record" "mx" {
   priority  = 10
 }
 
+# Delegates a subdomain to other nameservers. Their glue records, if they sit
+# inside the delegated zone, are ordinary A/AAAA records alongside it.
+resource "domeneshop_dns_record" "delegation" {
+  domain_id = data.domeneshop_domain.example.id
+  host      = "lab"
+  type      = "NS"
+  data      = "ns1.lab.example.com."
+}
+
 resource "domeneshop_dns_record" "spf" {
   domain_id = data.domeneshop_domain.example.id
   host      = "@"

@@ -8,6 +8,7 @@ use Sebastka\Domeneshop\Model\ARecord;
 use Sebastka\Domeneshop\Model\AaaaRecord;
 use Sebastka\Domeneshop\Model\CnameRecord;
 use Sebastka\Domeneshop\Model\MxRecord;
+use Sebastka\Domeneshop\Model\NsRecord;
 use Sebastka\Domeneshop\Model\RecordType;
 use Sebastka\Domeneshop\Model\SrvRecord;
 use Sebastka\Domeneshop\Model\TlsaRecord;
@@ -26,6 +27,7 @@ final class DnsTest extends DomeneshopTestCase
             ['id' => 5, 'host' => '_sip._tcp', 'ttl' => 3600, 'type' => 'SRV', 'data' => 'sip.example.com', 'priority' => 10, 'weight' => 100, 'port' => 5060],
             ['id' => 6, 'host' => '_443._tcp', 'ttl' => 3600, 'type' => 'TLSA', 'data' => 'ABCD', 'usage' => 3, 'selector' => 1, 'dtype' => 1],
             ['id' => 7, 'host' => '@', 'ttl' => 3600, 'type' => 'TXT', 'data' => 'v=spf1 ~all'],
+            ['id' => 8, 'host' => 'lab', 'ttl' => 3600, 'type' => 'NS', 'data' => 'ns1.lab.example.com.'],
         ]));
 
         $records = $client->dns()->list(1);
@@ -38,6 +40,7 @@ final class DnsTest extends DomeneshopTestCase
         self::assertInstanceOf(SrvRecord::class, $records[4]);
         self::assertInstanceOf(TlsaRecord::class, $records[5]);
         self::assertInstanceOf(TxtRecord::class, $records[6]);
+        self::assertInstanceOf(NsRecord::class, $records[7]);
 
         self::assertSame(10, $records[3]->priority);
         self::assertSame(5060, $records[4]->port);

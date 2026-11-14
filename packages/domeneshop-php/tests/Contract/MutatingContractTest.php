@@ -9,6 +9,7 @@ use Sebastka\Domeneshop\Exception\NotFoundException;
 use Sebastka\Domeneshop\Model\ARecord;
 use Sebastka\Domeneshop\Model\HttpForward;
 use Sebastka\Domeneshop\Model\MxRecord;
+use Sebastka\Domeneshop\Model\NsRecord;
 use Sebastka\Domeneshop\Model\RecordType;
 use Sebastka\Domeneshop\Model\TxtRecord;
 
@@ -108,6 +109,39 @@ final class MutatingContractTest extends ContractTestCase
         } finally {
             $client->dns()->delete($domain->id, $recordId);
         }
+    }
+
+    /**
+     * `NS` is absent from the published definition, yet the API creates,
+     * filters, returns and deletes it like any documented type — with the same
+     * trailing dot on its hostname data as MX, CNAME and SRV.
+     */
+    public function testAnNsRecordLifecycle(): void
+    {
+        $domain = $this->writableDomain();
+        $client = $this->client();
+        $host = self::testHost();
+
+        $recordId = $client->dns()->create($domain->id, new NsRecord($host, 'ns1.example.com'));
+
+        try {
+            $fetched = $client->dns()->get($domain->id, $recordId);
+            self::assertInstanceOf(NsRecord::class, $fetched);
+            self::assertSame(
+                'ns1.example.com.',
+                $fetched->data,
+                'The API is expected to return hostname data fully qualified, with a trailing dot',
+            );
+
+            $byType = $client->dns()->list($domain->id, host: $host, type: RecordType::NS);
+            self::assertCount(1, $byType);
+            self::assertInstanceOf(NsRecord::class, $byType[0]);
+        } finally {
+            $client->dns()->delete($domain->id, $recordId);
+        }
+
+        $this->expectException(NotFoundException::class);
+        $client->dns()->get($domain->id, $recordId);
     }
 
     public function testTheApiAppliesItsDefaultTtlWhenWeOmitIt(): void

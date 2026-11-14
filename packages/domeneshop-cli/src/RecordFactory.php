@@ -9,6 +9,7 @@ use Sebastka\Domeneshop\Model\AaaaRecord;
 use Sebastka\Domeneshop\Model\CnameRecord;
 use Sebastka\Domeneshop\Model\DnsRecord;
 use Sebastka\Domeneshop\Model\MxRecord;
+use Sebastka\Domeneshop\Model\NsRecord;
 use Sebastka\Domeneshop\Model\RecordType;
 use Sebastka\Domeneshop\Model\SrvRecord;
 use Sebastka\Domeneshop\Model\TlsaRecord;
@@ -61,6 +62,7 @@ final class RecordFactory
             RecordType::A => new ARecord($host, $data, $ttl),
             RecordType::AAAA => new AaaaRecord($host, $data, $ttl),
             RecordType::CNAME => new CnameRecord($host, $data, $ttl),
+            RecordType::NS => new NsRecord($host, $data, $ttl),
             RecordType::TXT => new TxtRecord($host, $data, $ttl),
             RecordType::MX => new MxRecord($host, $data, (int) self::intOption($input, 'priority'), $ttl),
             RecordType::SRV => new SrvRecord(

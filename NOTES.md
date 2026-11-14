@@ -59,6 +59,7 @@ Found by running the contract suite against the production API. Each was reprodu
 | 28 | **Hostname-valued record data comes back fully qualified, with a trailing dot.** Send `mx.example.com`, read back `mx.example.com.` — the same for `CNAME` and `SRV`. | A naive read-modify-write comparison will always look changed. Compare with the trailing dot normalised, or you will write the record on every run. |
 | 29 | **`priority` is returned as a JSON *string*** (`"priority": "42"`), though both the published schema and ours type it as an integer. | The SDK casts it back to `int`, so callers are unaffected. Anything reading the raw payload must not assume the declared type. |
 | 30 | **A dynamic-DNS update replaces the record rather than editing it**, so the record **id changes** on every update. | Any id you cached is dangling after the next `dyndns` call — deleting it answers `404`. Re-read the record by host rather than holding its id. |
+| 31 | **`NS` records work, though no schema or enum mentions them.** The API creates them (`POST` with `"type": "NS"`), deletes them, returns them from the list and by id, and honours `?type=NS` as a filter. Delegations made in the web interface show up the same way. They are subdomain delegations only: the domain's own nameservers are not listed as apex `NS` records, and changing those still has no route (see below). *(List, filter and get were confirmed with `curl` against production; create and delete with `curl` and by the contract suite.)* | A client that trusts the published enum fails on any domain with a delegation — this SDK did, throwing `Unsupported DNS record type "NS"` from `list()`. `NS` is modelled as an eighth type, `NsRecord`, and our spec documents it. |
 
 ## What the API does *not* offer
 
@@ -124,6 +125,7 @@ Our spec describes the **same fifteen operations across the same nine paths** �
 | `404` on the 12 operations taking a path id | missing on **5** of 12 | on **all 12** |
 | `403` on the 11 domain-scoped operations | on **0** — it documents `404`, which is wrong | on **all 11**, via one shared `components/responses` entry |
 | `TLSA` in the record-model reference | absent | present |
+| `NS` record type (item 31) | absent | present |
 | OpenAPI version | 3.0.1 | **3.2.0** |
 
 Items 14–30 are deliberately **not** "fixed" — a spec that disagrees with the server is worse than one that documents an oddity. They are called out in the generated descriptions instead.

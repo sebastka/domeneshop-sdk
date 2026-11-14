@@ -7,8 +7,9 @@ namespace Sebastka\Domeneshop\Model;
 /**
  * A single DNS record.
  *
- * The API models records as a `oneOf` over seven shapes that share `id`, `host`
- * and `ttl` but differ in their payload — MX adds a priority, SRV adds priority,
+ * The API models records as a `oneOf` over eight shapes (seven documented, plus
+ * `NS`, which the live API accepts) that share `id`, `host` and `ttl` but
+ * differ in their payload — MX adds a priority, SRV adds priority,
  * weight and port, TLSA adds usage, selector and dtype. Rather than one wide
  * class with mostly-null properties, each shape is its own subclass, so the
  * fields a record type requires are exactly the fields its constructor demands:
@@ -98,6 +99,7 @@ abstract class DnsRecord
             RecordType::A => new ARecord($host, $value, $ttl, $id),
             RecordType::AAAA => new AaaaRecord($host, $value, $ttl, $id),
             RecordType::CNAME => new CnameRecord($host, $value, $ttl, $id),
+            RecordType::NS => new NsRecord($host, $value, $ttl, $id),
             RecordType::TXT => new TxtRecord($host, $value, $ttl, $id),
             RecordType::MX => new MxRecord($host, $value, (int) ($data['priority'] ?? 0), $ttl, $id),
             RecordType::SRV => new SrvRecord(

@@ -43,6 +43,15 @@ resource "domeneshop_dns_record" "mx" {
   priority  = 10
 }
 
+# Delegates a subdomain to other nameservers. Their glue records, if they sit
+# inside the delegated zone, are ordinary A/AAAA records alongside it.
+resource "domeneshop_dns_record" "delegation" {
+  domain_id = data.domeneshop_domain.example.id
+  host      = "lab"
+  type      = "NS"
+  data      = "ns1.lab.example.com."
+}
+
 resource "domeneshop_dns_record" "spf" {
   domain_id = data.domeneshop_domain.example.id
   host      = "@"
@@ -76,10 +85,10 @@ resource "domeneshop_dns_record" "dane" {
 
 ### Required
 
-- `data` (String) The record value: an IPv4 address for `A`, an IPv6 address for `AAAA`, a hostname for `CNAME`/`MX`/`SRV`, freeform text for `TXT`, or the hash for `TLSA`.
+- `data` (String) The record value: an IPv4 address for `A`, an IPv6 address for `AAAA`, a hostname for `CNAME`/`MX`/`NS`/`SRV`, freeform text for `TXT`, or the hash for `TLSA`.
 - `domain_id` (Number) The numeric id of the domain the record belongs to. Use the `domeneshop_domain` data source to look it up by name.
 - `host` (String) The host/subdomain the record applies to. Use `@` for the zone apex.
-- `type` (String) Record type. One of `A`, `AAAA`, `CNAME`, `MX`, `SRV`, `TLSA`, `TXT`.
+- `type` (String) Record type. One of `A`, `AAAA`, `CNAME`, `MX`, `NS`, `SRV`, `TLSA`, `TXT`.
 
 ### Optional
 
